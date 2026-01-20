@@ -1,0 +1,284 @@
+"use client";
+
+import React, { useId } from "react";
+
+interface GlassButtonProps {
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+  type?: "button" | "submit" | "reset";
+  scale?: number;
+}
+
+export default function GlassButton({
+  children,
+  onClick,
+  className = "",
+  type = "button",
+  scale = 1,
+}: GlassButtonProps) {
+  const id = useId();
+  const filterId = `glass-filter-${id.replace(/:/g, "")}`;
+
+  return (
+    <>
+      {/* --- SVG FILTER (DISTORSI KACA) --- */}
+      <svg className="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
+        <defs>
+          <filter id={filterId} x="-50%" y="-50%" width="140%" height="140%">
+            <feTurbulence
+              type="turbulence"
+              baseFrequency="0" // Gelombang sangat halus (luas)
+              numOctaves="1"
+              seed="1"
+              //   result="noise"
+            />
+            <feDisplacementMap
+              in="SourceGraphic"
+              in2="noise"
+              scale="-1" // Kekuatan zoom negatif diperkuat agar lebih kerasa
+              xChannelSelector="G"
+              yChannelSelector="R"
+            />
+            <feGaussianBlur stdDeviation="0.5" />
+          </filter>
+        </defs>
+      </svg>
+
+      <style jsx global>{`
+        /* ... (CSS STYLE LAIN TIDAK BERUBAH) ... */
+        @property --angle-1 {
+          syntax: "<angle>";
+          inherits: false;
+          initial-value: -75deg;
+        }
+
+        @property --angle-2 {
+          syntax: "<angle>";
+          inherits: false;
+          initial-value: -45deg;
+        }
+
+        .glass-button-wrap {
+          position: relative;
+          z-index: 2;
+          border-radius: 999vw;
+          background: transparent;
+          pointer-events: none;
+          transition: all 400ms cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .glass-button-shadow {
+          --shadow-cuttoff-fix: 2em;
+          position: absolute;
+          width: calc(100% + var(--shadow-cuttoff-fix));
+          height: calc(100% + var(--shadow-cuttoff-fix));
+          top: calc(0% - var(--shadow-cuttoff-fix) / 2);
+          left: calc(0% - var(--shadow-cuttoff-fix) / 2);
+          filter: blur(clamp(2px, 0.125em, 12px));
+          -webkit-filter: blur(clamp(2px, 0.125em, 12px));
+          overflow: visible;
+          pointer-events: none;
+        }
+
+        .glass-button-shadow::after {
+          content: "";
+          position: absolute;
+          z-index: 0;
+          inset: 0;
+          border-radius: 999vw;
+          background: linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.2),
+            rgba(0, 0, 0, 0.1)
+          );
+          width: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
+          height: calc(100% - var(--shadow-cuttoff-fix) - 0.25em);
+          top: calc(var(--shadow-cuttoff-fix) - 0.5em);
+          left: calc(var(--shadow-cuttoff-fix) - 0.875em);
+          padding: 0.125em;
+          box-sizing: border-box;
+          mask:
+            linear-gradient(#000 0 0) content-box,
+            linear-gradient(#000 0 0);
+          mask-composite: exclude;
+          transition: all 400ms cubic-bezier(0.25, 1, 0.5, 1);
+          opacity: 1;
+        }
+
+        .glass-button {
+          --border-width: clamp(1px, 0.0625em, 4px);
+          all: unset;
+          cursor: pointer;
+          position: relative;
+          -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+          pointer-events: auto;
+          z-index: 3;
+          border-radius: 999vw;
+          background: transparent;
+
+          /* SHADOW PENTING (JANGAN DIHAPUS) */
+          box-shadow:
+            inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+            inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+            0 0.25em 0.125em -0.125em rgba(0, 0, 0, 0.2),
+            0 0 0.1em 0.25em inset rgba(255, 255, 255, 0.2),
+            0 0 0 0 rgba(255, 255, 255, 1);
+
+          transition: all 400ms cubic-bezier(0.25, 1, 0.5, 1);
+          overflow: hidden;
+        }
+
+        .glass-button:active {
+          transform: scale(0.975);
+          box-shadow:
+            inset 0 0.125em 0.125em rgba(0, 0, 0, 0.05),
+            inset 0 -0.125em 0.125em rgba(255, 255, 255, 0.5),
+            0 0.15em 0.05em -0.1em rgba(0, 0, 0, 0.25),
+            0 0 0.05em 0.1em inset rgba(255, 255, 255, 0.5),
+            0 0 0 0 rgba(255, 255, 255, 1);
+        }
+
+        .glass-button span {
+          position: relative;
+          z-index: 10;
+          display: block;
+          user-select: none;
+          font-family: "Inter", sans-serif;
+          letter-spacing: -0.05em;
+          font-weight: 500;
+          font-size: 1em;
+          color: rgba(250, 250, 250, 1);
+          text-shadow: 0em 0.25em 0.05em rgba(0, 0, 0, 0.1);
+          transition: all 400ms cubic-bezier(0.25, 1, 0.5, 1);
+          padding-inline: 1.5em;
+          padding-block: 0.875em;
+        }
+
+        .glass-button:active span {
+          text-shadow: 0.025em 0.025em 0.025em rgba(0, 0, 0, 0.12);
+        }
+
+        .glass-button span::after {
+          content: "";
+          display: block;
+          position: absolute;
+          width: calc(100% - var(--border-width));
+          height: calc(100% - var(--border-width));
+          top: calc(0% + var(--border-width) / 2);
+          left: calc(0% + var(--border-width) / 2);
+          border-radius: 999vw;
+          background: linear-gradient(
+            var(--angle-2),
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.5) 40% 50%,
+            rgba(255, 255, 255, 0) 55%
+          );
+          z-index: 3;
+          mix-blend-mode: screen;
+          pointer-events: none;
+          background-size: 200% 200%;
+          background-position: 0% 50%;
+          transition:
+            background-position 400ms,
+            --angle-2 400ms;
+        }
+
+        .glass-button:active span::after {
+          background-position: 25% 50%;
+        }
+
+        .glass-button::after {
+          content: "";
+          position: absolute;
+          z-index: 20;
+          inset: 0;
+          border-radius: 999vw;
+          width: calc(100% + var(--border-width));
+          height: calc(100% + var(--border-width));
+          top: calc(0% - var(--border-width) / 2);
+          left: calc(0% - var(--border-width) / 2);
+          padding: var(--border-width);
+          box-sizing: border-box;
+          background:
+            conic-gradient(
+              from var(--angle-1) at 50% 50%,
+              rgba(0, 0, 0, 0.5),
+              rgba(0, 0, 0, 0) 5% 40%,
+              rgba(0, 0, 0, 0.5) 50%,
+              rgba(0, 0, 0, 0) 60% 95%,
+              rgba(0, 0, 0, 0.5)
+            ),
+            linear-gradient(
+              180deg,
+              rgba(255, 255, 255, 0.5),
+              rgba(255, 255, 255, 0.5)
+            );
+          mask:
+            linear-gradient(#000 0 0) content-box,
+            linear-gradient(#000 0 0);
+          mask-composite: exclude;
+          transition:
+            all 400ms,
+            --angle-1 500ms ease;
+          box-shadow: inset 0 0 0 calc(var(--border-width) / 2)
+            rgba(255, 255, 255, 0.5);
+        }
+
+        .glass-button:active::after {
+          --angle-1: -125deg;
+        }
+
+        .glass-button-wrap:has(.glass-button:active) .glass-button-shadow {
+          filter: blur(clamp(2px, 0.0625em, 6px));
+        }
+        .glass-button-wrap:has(.glass-button:active)
+          .glass-button-shadow::after {
+          top: calc(var(--shadow-cuttoff-fix) - 0.875em);
+          opacity: 1;
+        }
+      `}</style>
+
+      <div
+        className={`glass-button-wrap ${className}`}
+        style={{
+          fontSize: "clamp(2rem, 4vw, 5rem)",
+          transform: `scale(${scale ?? 1})`,
+          transformOrigin: "center",
+        }}
+      >
+        <button type={type} onClick={onClick} className="glass-button">
+          {/* --- INI BAGIAN UTAMA YANG DIUBAH --- */}
+          {/* Layer Latar Belakang (Lens) */}
+          <div
+            className="absolute inset-0"
+            style={{
+              // Background tipis agar filter aktif
+              background: "rgba(255,255,255,0)",
+
+              // Blur 0px agar 'clear' (bening)
+              backdropFilter: "blur(0px)",
+              WebkitBackdropFilter: "blur(0px)",
+
+              // Filter SVG Zoom/Distorsi
+              filter: `url(#${filterId})`,
+
+              // --- PENTING: SKALA DIPERBESAR (1.25) ---
+              // Ini membuat area efek 'lebih besar' dari tombolnya,
+              // sehingga tepian efek terpotong (clipped) dan terlihat menyatu penuh
+              transform: "scale(-8)",
+              borderRadius: "inherit",
+              zIndex: 0,
+            }}
+          />
+
+          {/* Konten Teks */}
+          <span>{children}</span>
+        </button>
+
+        {/* Shadow Luar */}
+        <div className="glass-button-shadow"></div>
+      </div>
+    </>
+  );
+}
